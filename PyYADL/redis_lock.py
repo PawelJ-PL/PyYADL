@@ -1,5 +1,5 @@
 from time import time
-from json import dumps
+from json import dumps, loads
 from redis import StrictRedis, ConnectionPool
 from PyYADL.distributed_lock import AbstractDistributedLock
 
@@ -26,3 +26,10 @@ class RedisLock(AbstractDistributedLock):
         ttl = self.ttl if self.ttl > 0 else None
         result = self._client.set(name=self.LOCK_KEY, value=value, ex=ttl, nx=True)
         return bool(result)
+
+    def _read_secret(self):
+        result = self._client.get(self.LOCK_KEY)
+        return loads(result.decode('utf-8')).get('secret') if result is not None else None
+
+    def _delete_lock(self):
+        return bool(self._client.delete(self.LOCK_KEY))

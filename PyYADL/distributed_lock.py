@@ -1,3 +1,4 @@
+from time import time, sleep
 from uuid import uuid4
 from abc import ABCMeta, abstractmethod
 
@@ -7,10 +8,17 @@ class AbstractDistributedLock(metaclass=ABCMeta):
         self.ttl = ttl
         self.name = name
         self.prefix = prefix
-        self._secret = uuid4()
+        self._secret = str(uuid4())
 
     def acquire(self, blocking=True, timeout=-1):
-        self._write_lock_if_not_exists()
+        entered_at = time()
+        while True:
+            result = self._write_lock_if_not_exists()
+            if result:
+                return True
+            elif not blocking or (timeout > 0 and time() > entered_at + timeout):
+                return False
+            sleep(1)
 
     def release(self, force=False):
         pass

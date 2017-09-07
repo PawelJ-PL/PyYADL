@@ -45,10 +45,10 @@ class AbstractDistributedLock(metaclass=ABCMeta):
         pass
 
     def __enter__(self):
-        pass
+        self.acquire()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+        self.release()
 
     def __str__(self):
         return '<{0}.{1} object at {2}> prefix: {3}, name: {4} , ttl: {5}, _secret: {6}'.format(__name__,

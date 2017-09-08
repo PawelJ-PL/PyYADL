@@ -1,6 +1,5 @@
 from os import path
 from setuptools import setup, find_packages
-import PyYADL
 
 
 here = path.abspath(path.dirname(__file__))

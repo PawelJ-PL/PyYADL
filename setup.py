@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 here = path.abspath(path.dirname(__file__))
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 # TODO: version should be generated
 
 with open(path.join(here, 'README.md')) as f:

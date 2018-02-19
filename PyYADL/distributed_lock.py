@@ -21,11 +21,7 @@ class AbstractDistributedLock(metaclass=ABCMeta):
             sleep(1)
 
     def release(self, force=False):
-        lock_secret = self._read_secret()
-        if lock_secret is None:
-            raise RuntimeError('release unlocked lock')
-
-        if force or lock_secret == self._secret:
+        if force or self._verify_secret():
             result = self._delete_lock()
             if not result:
                 raise RuntimeError('release unlocked lock')
@@ -37,7 +33,7 @@ class AbstractDistributedLock(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _read_secret(self):
+    def _verify_secret(self) -> bool:
         pass
 
     @abstractmethod

@@ -1,3 +1,3 @@
 from .redis_lock import RedisLock, RedisWriteLock, RedisReadLock
 
-__all__ = (RedisLock, RedisWriteLock, RedisLock)
+__all__ = (RedisLock, RedisWriteLock, RedisReadLock)

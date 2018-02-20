@@ -50,7 +50,7 @@ class AbstractDistributedLock(metaclass=ABCMeta):
 
     def __str__(self):
         return '<{0}.{1} object at {2}> prefix: {3}, name: {4} , ttl: {5}, _secret: {6}'.format(__name__,
-                                                                                               self.__class__.__name__,
-                                                                                               hex(id(self)), self.prefix,
-                                                                                               self.name, self.ttl,
-                                                                                               self._secret)
+                                                                                                self.__class__.__name__,
+                                                                                                hex(id(self)), self.prefix,
+                                                                                                self.name, self.ttl,
+                                                                                                self._secret)

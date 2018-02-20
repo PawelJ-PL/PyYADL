@@ -12,7 +12,7 @@ Currently there is only one implementation, based on Redis, but it's very easy t
 
 **Create lock object**
 ```python
-from PyYADL.redis_lock import RedisLock
+from PyYADL import RedisLock
 lock = RedisLock(name='test_lock', prefix='my_app', ttl=60, existing_connection_pool=None, redis_host='127.0.0.1', redis_port=6379, redis_password='secret', redis_db=0)
 ```
 Parameters meaning:
@@ -27,7 +27,7 @@ Parameters meaning:
 
 **Basic usage**
 ```python
-from PyYADL.redis_lock import RedisLock
+from PyYADL import RedisLock
 
 lock = RedisLock('test_lock')
 lock.acquire()
@@ -36,7 +36,7 @@ lock.release()
 Basic lock and release operations. If lock already acquired, will wait for release or ttl expire
 
 ```python
-from PyYADL.redis_lock import RedisLock
+from PyYADL import RedisLock
 
 lock = RedisLock('test_lock')
 with lock:
@@ -46,7 +46,7 @@ with lock:
 Lock and release using context manager
 
 ```python
-from PyYADL.redis_lock import RedisLock
+from PyYADL import RedisLock
 
 lock1 = RedisLock('test_lock')
 lock2 = RedisLock('test_lock')
@@ -56,7 +56,7 @@ lock2.release()
 Will raise RuntimeError (because lock is owned by other instance)
 
 ```python
-from PyYADL.redis_lock import RedisLock
+from PyYADL import RedisLock
 
 lock1 = RedisLock('test_lock')
 lock2 = RedisLock('test_lock')
@@ -66,7 +66,7 @@ lock2.release(force=True)
 Will release lock, because force parameter is set to True
 
 ```python
-from PyYADL.redis_lock import RedisLock
+from PyYADL import RedisLock
 
 lock = RedisLock('test_lock')
 status = lock.acquire(blocking=False)
@@ -74,9 +74,62 @@ status = lock.acquire(blocking=False)
 Will acquire lock and return True, if lock released, otherwise return False without waiting
 
 ```python
-from PyYADL.redis_lock import RedisLock
+from PyYADL import RedisLock
 
 lock = RedisLock('test_lock')
 status = lock.acquire(timeout=12)
 ```
 Will try to acquire lock for 12 seconds. In case of success will return True, otherwise return False
+
+## Read and Write locks
+There are two lock subtypes:
+* Write Lock (typical lock, exclusive)
+* Read Lock (non exclusive)
+
+At the same time, there can be only one write lock (mainly for changes) or many read lock (mainly for read operations).
+If write lock has been acquired, read lock cannot be obtained and when at least one read lock exists, write lock cannot be acuired.
+
+### Usage 
+
+#### Examples
+
+```python
+from PyYADL import RedisWriteLock
+
+lock = RedisWriteLock('test_lock')
+status = lock.acquire(blocking=True, timeout=20)
+```
+Equivalent of RedisLock class
+
+```python
+from PyYADL import RedisReadLock
+
+lock1 = RedisReadLock('test_lock')
+lock2 = RedisReadLock('test_lock')
+lock1.acquire()
+lock2.acquire()
+```
+Will create two read locks (at the same time there can be many read locks)
+
+```python
+from PyYADL import RedisReadLock, RedisWriteLock
+
+lock1 = RedisReadLock('test_lock')
+lock2 = RedisReadLock('test_lock')
+lock3 = RedisWriteLock('test_lock')
+lock1.acquire()
+lock2.acquire()
+lock3.acquire()
+```
+Will acquire only lock1 and lock2 (write lock can't be obtained when other locks exists)
+
+```python
+from PyYADL import RedisReadLock, RedisWriteLock
+
+lock1 = RedisWriteLock('test_lock')
+lock2 = RedisReadLock('test_lock')
+
+lock1.acquire()
+lock2.acquire()
+```
+Will acquire only lock1 (when write lock exists, read lock cannot be obtained)

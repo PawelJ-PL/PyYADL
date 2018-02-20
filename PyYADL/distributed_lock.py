@@ -1,3 +1,4 @@
+from logging import getLogger
 from time import time, sleep
 from uuid import uuid4
 from abc import ABCMeta, abstractmethod
@@ -9,6 +10,7 @@ class AbstractDistributedLock(metaclass=ABCMeta):
         self.name = name
         self.prefix = prefix
         self._secret = str(uuid4())
+        self.logger = getLogger(self.__class__.__name__)
 
     def acquire(self, blocking=True, timeout=-1):
         entered_at = time()
@@ -21,11 +23,7 @@ class AbstractDistributedLock(metaclass=ABCMeta):
             sleep(1)
 
     def release(self, force=False):
-        lock_secret = self._read_secret()
-        if lock_secret is None:
-            raise RuntimeError('release unlocked lock')
-
-        if force or lock_secret == self._secret:
+        if force or self._verify_secret():
             result = self._delete_lock()
             if not result:
                 raise RuntimeError('release unlocked lock')
@@ -37,7 +35,7 @@ class AbstractDistributedLock(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _read_secret(self):
+    def _verify_secret(self) -> bool:
         pass
 
     @abstractmethod
@@ -52,7 +50,7 @@ class AbstractDistributedLock(metaclass=ABCMeta):
 
     def __str__(self):
         return '<{0}.{1} object at {2}> prefix: {3}, name: {4} , ttl: {5}, _secret: {6}'.format(__name__,
-                                                                                               self.__class__.__name__,
-                                                                                               hex(id(self)), self.prefix,
-                                                                                               self.name, self.ttl,
-                                                                                               self._secret)
+                                                                                                self.__class__.__name__,
+                                                                                                hex(id(self)), self.prefix,
+                                                                                                self.name, self.ttl,
+                                                                                                self._secret)

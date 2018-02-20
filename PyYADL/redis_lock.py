@@ -60,7 +60,8 @@ class RedisReadLock(RedisLock):
                 pipe.execute()
                 return True
             except WatchError:
-                self._write_lock_if_not_exists()
+                self.logger.info('Key %s has changed during transaction. Trying to retry', self.LOCK_KEY)
+                return self._write_lock_if_not_exists()
 
     @staticmethod
     def _is_valid_read_lock_data(lock_data):
@@ -81,7 +82,8 @@ class RedisReadLock(RedisLock):
                     return False
                 return self._secret in lock_data['secret']
             except WatchError:
-                self._verify_secret()
+                self.logger.info('Key %s has changed during transaction. Trying to retry', self.LOCK_KEY)
+                return self._verify_secret()
 
     def _delete_lock(self):
         with self._client.pipeline() as pipe:
@@ -110,4 +112,5 @@ class RedisReadLock(RedisLock):
                     pipe.execute()
                     return True
             except WatchError:
-                self._delete_lock()
+                self.logger.info('Key %s has changed during transaction. Trying to retry', self.LOCK_KEY)
+                return self._delete_lock()

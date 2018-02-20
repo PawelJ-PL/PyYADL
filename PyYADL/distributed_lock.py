@@ -1,3 +1,4 @@
+from logging import getLogger
 from time import time, sleep
 from uuid import uuid4
 from abc import ABCMeta, abstractmethod
@@ -9,6 +10,7 @@ class AbstractDistributedLock(metaclass=ABCMeta):
         self.name = name
         self.prefix = prefix
         self._secret = str(uuid4())
+        self.logger = getLogger(self.__class__.__name__)
 
     def acquire(self, blocking=True, timeout=-1):
         entered_at = time()
